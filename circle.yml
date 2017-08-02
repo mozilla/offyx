@@ -1,0 +1,24 @@
+machine:
+  services:
+  - docker
+
+test:
+  override:
+  - 'true'
+
+deployment:
+  latest:
+    branch: master
+    commands:
+    - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+    - |-
+      cat > version.json << EOF
+      {
+          "version": "latest",
+          "source": "https://github.com/mozilla/offyx",
+          "commit": "$(git rev-parse HEAD)",
+          "build": "$CIRCLE_BUILD_URL"
+      }
+      EOF
+    - docker build -t mozilla/offyx:latest .
+    - docker push mozilla/offyx:latest
