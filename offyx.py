@@ -39,19 +39,28 @@ def normalize(fields):
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def catchall(path):
+    meta = {
+        'path': path,
+        'agent': request.headers.get('User-Agent')
+        'ip': request.headers.get('X-Forwarded-For')
+    }
     data = request.get_json(force=True)
-    if type(data) is list:
-        try:
+    try:
+        if type(data) is list:
             logs = [normalize(item) for item in data]
             for item in logs:
-                log(item)
-        except TypeError:
+                log({**item, **meta})
+        # elif dict type bulk api call:
+        #     logs = [normalize(item) for item in data['bulk']]
+        #     for item in logs:
+        #         log({**item, **meta})
+        elif type(data) is dict:
+            log(normalize({**data, **meta}))
+        else:
             return '', 400
-    elif type(data) is dict:
-        log(normalize(data))
-    else:
+        return '', 204
+    except TypeError:
         return '', 400
-    return '', 204
 
 
 @app.route('/__lbheartbeat__')
