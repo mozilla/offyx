@@ -8,7 +8,10 @@ logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 
 def log(fields):
-    print(json.dumps({'Timestamp': int(time.time() * 1e9), 'Fields': fields}))
+    line = json.dumps({'Timestamp': int(time.time() * 1e9), 'Fields': fields})
+    if len(line) > 1024e3:
+        raise ValueError('body too long')
+    print(line)
 
 
 def flatten(fields):
@@ -26,13 +29,13 @@ def flatten(fields):
             else:
                 result[str(index)] = value
     else:
-        raise TypeError()
+        raise TypeError('could not flatten fields')
     return result
 
 
 def normalize(fields):
     if type(fields) is not dict:
-        raise TypeError()
+        raise TypeError('fields is not a dict')
     return flatten(fields)
 
 
@@ -41,8 +44,9 @@ def normalize(fields):
 def catchall(path):
     meta = {
         'path': path,
-        'agent': request.headers.get('User-Agent')
-        'ip': request.headers.get('X-Forwarded-For')
+        'agent': request.headers.get('User-Agent'),
+        'remoteAddressChain': request.headers.get('X-Forwarded-For'),
+        'method': request.method,
     }
     data = request.get_json(force=True)
     try:
@@ -59,7 +63,7 @@ def catchall(path):
         else:
             return '', 400
         return '', 204
-    except TypeError:
+    except (TypeError, ValueError):
         return '', 400
 
 
