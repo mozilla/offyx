@@ -75,7 +75,7 @@ schemas = {
       'object': str,
       'client_time': int,
       'variants': str,
-      'addon_id': str
+      'addon_id': str,
       'addon_version': str,
       'firefox_version': str,
       'os_name': str,
@@ -165,7 +165,7 @@ def transform(schema, messages, extra={}):
 def log(schema, messages):
     lines = []
     for message in messages:
-        line = '%s:%s\n' % (schema, json.dumps([body, meta], separators=(',', ':')))
+        line = '%s:%s\n' % (schema, json.dumps(message, separators=(',', ':')))
         if len(line) > 1024e3:
             raise ValueError('message too long')
         lines.append(line)
@@ -182,7 +182,7 @@ def catchall(path):
         assert type(payload) in [dict, list], 'invalid payload'
         if type(payload) is dict:
             messages = [payload]
-        elif type(body) is list:
+        elif type(payload) is list:
             messages = payload
         log(None, transform(None, messages, {'path': path}))
         return '', 204
@@ -203,20 +203,20 @@ def view():
 
 @app.route('/v2/links/click', methods=['POST'])
 @app.route('/v3/links/click', methods=['POST'])
-def view():
+def click():
     try:
         payload = request.get_json(force=True)
-        log(transform('click', [payload]))
+        log('click', transform('click', [payload]))
         return '', 204
     except Exception as e:
         return str(e), 400
 
 
 @app.route('/v3/links/ping-centre', methods=['POST'])
-def view():
+def ping_centre():
     try:
         payload = request.get_json(force=True)
-        log(transform('ping-centre', [payload]))
+        log('ping-centre', transform('ping-centre', [payload]))
         return '', 204
     except Exception as e:
         return str(e), 400
@@ -224,10 +224,10 @@ def view():
 
 @app.route('/v3/links/activity-stream', methods=['POST'])
 @app.route('/v4/links/activity-stream', methods=['POST'])
-def view():
+def activity_stream():
     try:
         payload = request.get_json(force=True)
-        log(transform('activity-stream', [payload]))
+        log('activity-stream', transform('activity-stream', [payload]))
         return '', 204
     except Exception as e:
         return str(e), 400
