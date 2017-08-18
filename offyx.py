@@ -72,7 +72,16 @@ schemas = {
     'Fields': {
       'topic': str,
       'client_id': str,
+      'object': str,
+      'client_time': int,
+      'variants': str,
+      'addon_id': str
       'addon_version': str,
+      'firefox_version': str,
+      'os_name': str,
+      'os_version': str,
+      'locale': str,
+      # from onyx docs not found in ping-centre repo
       'tab_id': int,
       'load_reason': str,
       'source': str,
